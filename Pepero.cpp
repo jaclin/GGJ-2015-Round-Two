@@ -19,16 +19,12 @@ class Player
 {
  public:
 
-  // dimensions
-  double pRadius = 10;
-  double pPosX, pPosY;
-
   // Unique ID
   const int uid;
 
   Player(int, int, int,int );
   void render();
-  void move();
+  void move(int);
   ~Player();
 
   private:
@@ -38,6 +34,27 @@ class Player
     int velX = 25;
     int velY = 25;
     int red, blue;
+      // dimensions
+    double pRadius = 10;
+    double pPosX, pPosY;
+};
+
+class Tile
+{
+  public:
+  // Unique ID
+  const int uid;
+
+  int red = 255;
+  int blue = 255;
+
+  Tile(int,int);
+  void render();
+  ~Tile();
+
+  private:
+   static int newUID;
+   int tPosX, tPosY;
 };
 
 int Player::newUID = 0;
@@ -51,32 +68,34 @@ Player::Player(int x, int y, int r = 0, int b = 0): uid(newUID++)
   blue = b;
 }
 
+void Player::move(int direction){
 
-void Player::move(){
+  if (direction == 0)
+   pPosX += velX;
+  if (direction == 1)
+   pPosX -= velX;
+  if (direction == 2)
+   pPosY += velY;
+  if (direction == 3)
+   pPosY -= velY;
 
   if (pPosX <= 0+pRadius)
   {
     this->pPosX = pRadius;
-    velX = std::fabs(velX);
   }
   else if  (pPosX >= SCREEN_WIDTH-pRadius)
   {
     this->pPosX = SCREEN_WIDTH-pRadius;
-    velX = -std::fabs(velX);
   }
-
   else if (pPosY <= 0+pRadius)
   {
     this->pPosY = pRadius;
-    velY = std::fabs(velY);
   }
   else if (pPosY >= SCREEN_HEIGHT-pRadius)
   {
     this->pPosY = SCREEN_HEIGHT-pRadius;
-    velY = -std::fabs(velY);
   }
-  pPosX += velX;
-  pPosY += velY;
+
 }
 
 void Player::render()
@@ -85,6 +104,19 @@ void Player::render()
 }
 
 Player::~Player(){}
+
+int Tile::newUID = 0;
+
+Tile::Tile(int x, int y): uid(newUID++)
+{
+// Starting position
+  tPosX = x;
+  tPosY = y;
+}
+
+void Tile::render(){
+
+}
 
 // SDL init(), load(), and close() from LazyFoo Productions
 bool init()
@@ -204,6 +236,7 @@ int main(int argc, char* args[])
 {
   bool quit = false;
   Player * player1 = new Player(12,12,255,0);
+  Player * player2 = new Player(SCREEN_WIDTH-12,SCREEN_HEIGHT-12,0,255);
 
   if(!init())
   {
@@ -217,23 +250,52 @@ int main(int argc, char* args[])
 		}
     else
     {
-        SDL_Event e;
-        while(!quit)
-        {
-            uint capTimer = SDL_GetTicks();
-            while(SDL_PollEvent(&e) != 0)
-            {
-                if(e.type == SDL_QUIT)
-                {
-                    quit = true;
+     SDL_Event e;
+    while(!quit)
+      {
+      uint capTimer = SDL_GetTicks();
+      while(SDL_PollEvent(&e) != 0)
+      {
+        switch( e.type ){
+            /* Look for a keypress */
+            case SDL_KEYDOWN:
+                /* Check the SDLKey values and move change the coords */
+                switch( e.key.keysym.sym ){
+                    case SDLK_LEFT:
+                        player1->move(1);
+                        break;
+                    case SDLK_RIGHT:
+                        player1->move(0);
+                        break;
+                    case SDLK_UP:
+                        player1->move(3);
+                        break;
+                    case SDLK_DOWN:
+                        player1->move(2);
+                        break;
+                    case SDLK_a:
+                        player2->move(1);
+                        break;
+                    case SDLK_d:
+                        player2->move(0);
+                        break;
+                    case SDLK_w:
+                        player2->move(3);
+                        break;
+                    case SDLK_s:
+                        player2->move(2);
+                        break;
+                    default:
+                        break;
                 }
-                if (e.type == SDL_KEYDOWN)
-                    player1->move();
-            }
+          }
+      }
+      // Clear Screen
+      SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+      SDL_RenderClear(renderer);
 
-        // Clear Screen
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-        SDL_RenderClear(renderer);
+      // Render other objects
+      SDL_RenderPresent(renderer);
 
         //Pattern viewport
         SDL_Rect patternViewport;
@@ -255,6 +317,7 @@ int main(int argc, char* args[])
 
         // Render Objects
         player1->render();
+        player2->render();
 
         // Render other objects
         SDL_RenderPresent(renderer);
