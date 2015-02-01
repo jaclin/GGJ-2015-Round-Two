@@ -44,6 +44,7 @@ class TileMap
         std::vector<Tile> TileHolder;
         TileMap();
         void render();
+        void reset();
         ~TileMap();
 };
 
@@ -208,6 +209,15 @@ TileMap::TileMap(){
 void TileMap::render(){
     for (auto &x : TileHolder){
         x.render();
+    }
+}
+
+void TileMap::reset(){
+    for (auto &x : TileHolder){
+        x.green = 255;
+        x.red = 255;
+        x.blue = 255;
+        x.marked = false;
     }
 }
 
@@ -402,8 +412,14 @@ int main(int argc, char* args[])
                                     break;
                                 case SDLK_TAB:
                                     player2->changeTileColor(map2);
+                                    break;
                                 case SDLK_SPACE:
                                     player1->changeTileColor(map1);
+                                    break;
+                                case SDLK_RETURN:
+                                    map1.reset();
+                                    map2.reset();
+                                    break;
                                 default:
                                     break;
                             }
