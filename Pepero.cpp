@@ -15,34 +15,6 @@ SDL_Renderer* renderer = nullptr;
 SDL_Texture* pattern = nullptr;
 
 // Class Declaration
-class Player
-{
-    public:
-        // Unique ID
-        const int uid;
-
-        Player(int, int, int,int );
-        void render();
-        void move(int);
-        ~Player();
-
-    private:
-        // uid hack
-        static int newUID;
-
-        //movement
-        int velX = 25;
-        int velY = 25;
-
-        //colors
-        int red, blue;
-
-        // dimension
-        double pRadius = 10;
-
-        //position
-        double pPosX, pPosY;
-};
 
 class Tile
 {
@@ -74,6 +46,40 @@ class TileMap
         ~TileMap();
 };
 
+
+class Player
+{
+    public:
+        // Unique ID
+        const int uid;
+
+        Player(int, int, int,int );
+        void render();
+        void move(int);
+        void changeTileColor(TileMap& );
+        ~Player();
+
+        int tileLocation;
+        int origTileLocation;
+
+    private:
+        // uid hack
+        static int newUID;
+
+        //movement
+        int velX = 25;
+        int velY = 25;
+
+        //colors
+        int red, blue;
+
+        // dimension
+        double pRadius = 10;
+
+        //position
+        double pPosX, pPosY;
+};
+
 int Player::newUID = 0;
 
 Player::Player(int x, int y, int r = 0, int b = 0): uid(newUID++)
@@ -83,42 +89,81 @@ Player::Player(int x, int y, int r = 0, int b = 0): uid(newUID++)
     pPosY = y;
     red = r;
     blue = b;
+    if (uid == 0){
+        origTileLocation = 0;
+    }
+    else{
+        origTileLocation = 780;
+    }
+    tileLocation = origTileLocation;
 }
 
 void Player::move(int direction)
 {
+    int prevTileLocation = tileLocation;
+    // Left
     if (direction == 0)
+    {
         pPosX += velX;
+        tileLocation+=20;
+    }
+    // Right
     else if (direction == 1)
+    {
         pPosX -= velX;
+        tileLocation-=20;
+    }
+    // Down
     else if (direction == 2)
+    {
         pPosY += velY;
+        tileLocation+=1;
+    }
+    // Up
     else if (direction == 3)
+    {
         pPosY -= velY;
-
+        tileLocation-=1;
+    }
+    // Left boundary
     if (pPosX <= 0+pRadius)
     {
         this->pPosX = pRadius+2;
+        tileLocation = prevTileLocation;
     }
+    // Right boundary
     else if  (pPosX >= 500-pRadius)
     {
         this->pPosX = 500-pRadius-3;
+        tileLocation = prevTileLocation;
     }
 
     if (pPosY <= 0+pRadius)
    	{
 		this->pPosY = pRadius+2;
+		tileLocation = prevTileLocation;
     }
     else if (pPosY >= SCREEN_HEIGHT-pRadius)
     {
         this->pPosY = SCREEN_HEIGHT-pRadius-3;
+        tileLocation = prevTileLocation;
     }
+    printf("%u\n",tileLocation);
+
 }
 
 
 void Player::render()
 {
     filledCircleRGBA(renderer, pPosX, pPosY, pRadius, red, 0, blue, 255);
+}
+
+void Player::changeTileColor(TileMap& tilemap){
+    for (auto &x : tilemap.TileHolder){
+        if (x.uid == tileLocation){
+            x.red = 0;
+        }
+    }
 }
 
 Player::~Player(){}
@@ -139,8 +184,8 @@ void Tile::render(){
 Tile::~Tile() {}
 
 TileMap::TileMap(){
-    for (int i = 0; i < 21; i++){
-        for (int j = 0; j < 21; j++){
+    for (int i = 0; i < 20; i++){
+        for (int j = 0; j < 20; j++){
             TileHolder.push_back(Tile(i*25, j*25));
         }
      }
@@ -341,6 +386,10 @@ int main(int argc, char* args[])
                                 case SDLK_s:
                                     player2->move(2);
                                     break;
+                                case SDLK_TAB:
+                                    player2->changeTileColor(map2);
+                                case SDLK_SPACE:
+                                    player1->changeTileColor(map1);
                                 default:
                                     break;
                             }
@@ -387,7 +436,7 @@ int main(int argc, char* args[])
                 drawGrid();
                 lineRGBA(renderer,0,0,0,500,255,255,0,255);
                 player2->render();
-
+                //printf("%u\n", map2.TileHolder.back().uid);
 
                 // Update screen
                 SDL_RenderPresent(renderer);
