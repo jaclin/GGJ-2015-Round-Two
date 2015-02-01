@@ -264,7 +264,7 @@ int main(int argc, char* args[])
 {
     bool quit = false;
     Player * player1 = new Player(12,12,255,0);
-    Player * player2 = new Player(1000-12,SCREEN_HEIGHT-12,0,255);
+    Player * player2 = new Player(500-12,12,0,255);
 
     if(!init())
     {
@@ -338,16 +338,25 @@ int main(int argc, char* args[])
 
                 SDL_RenderCopy( renderer, pattern, NULL, NULL );
 
-                //Game viewport
-                SDL_Rect mainViewport;
-                mainViewport.x = 0;
-                mainViewport.y = 0;
-                mainViewport.w = 1000;
-                mainViewport.h = 500;
-                SDL_RenderSetViewport(renderer, &mainViewport);
+                //Player 1 viewport
+                SDL_Rect player1Viewport;
+                player1Viewport.x = 0;
+                player1Viewport.y = 0;
+                player1Viewport.w = 500;
+                player1Viewport.h = 500;
+                SDL_RenderSetViewport(renderer, &player1Viewport);
 
                 // Render objects
                 player1->render();
+
+                //Player 2 viewport
+                SDL_Rect player2Viewport;
+                player2Viewport.x = 500;
+                player2Viewport.y = 0;
+                player2Viewport.w = 500;
+                player2Viewport.h = 500;
+                SDL_RenderSetViewport(renderer, &player2Viewport);
+
                 player2->render();
 
                 // Update screen
