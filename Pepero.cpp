@@ -15,6 +15,40 @@ SDL_Renderer* renderer = nullptr;
 SDL_Texture* pattern = nullptr;
 
 // Class Declaration
+
+class Tile
+{
+    public:
+        // Unique ID
+        const int uid;
+
+        //colors
+        int red = 255;
+        int blue = 255;
+        int green = 255;
+        bool marked = false;
+
+        int tPosX, tPosY;
+
+        Tile(int,int);
+        void render();
+        ~Tile();
+
+    private:
+        static int newUID;
+};
+
+class TileMap
+{
+    public:
+        std::vector<Tile> TileHolder;
+        TileMap();
+        void render();
+        void reset();
+        ~TileMap();
+};
+
+
 class Player
 {
     public:
@@ -24,7 +58,11 @@ class Player
         Player(int, int, int,int );
         void render();
         void move(int);
+        void changeTileColor(TileMap& );
         ~Player();
+
+        int tileLocation;
+        int origTileLocation;
 
     private:
         // uid hack
@@ -44,25 +82,6 @@ class Player
         double pPosX, pPosY;
 };
 
-class Tile
-{
-    public:
-        // Unique ID
-        const int uid;
-
-        //colors
-        int red = 255;
-        int blue = 255;
-
-    Tile(int,int);
-    void render();
-    ~Tile();
-
-    private:
-        static int newUID;
-        int tPosX, tPosY;
-};
-
 int Player::newUID = 0;
 
 Player::Player(int x, int y, int r = 0, int b = 0): uid(newUID++)
@@ -72,42 +91,94 @@ Player::Player(int x, int y, int r = 0, int b = 0): uid(newUID++)
     pPosY = y;
     red = r;
     blue = b;
+    if (uid == 0){
+        origTileLocation = 0;
+    }
+    else{
+        origTileLocation = 780;
+    }
+    tileLocation = origTileLocation;
 }
 
 void Player::move(int direction)
 {
+    int prevTileLocation = tileLocation;
+    // Left
     if (direction == 0)
+    {
         pPosX += velX;
+        tileLocation+=20;
+    }
+    // Right
     else if (direction == 1)
+    {
         pPosX -= velX;
+        tileLocation-=20;
+    }
+    // Down
     else if (direction == 2)
+    {
         pPosY += velY;
+        tileLocation+=1;
+    }
+    // Up
     else if (direction == 3)
+    {
         pPosY -= velY;
-
+        tileLocation-=1;
+    }
+    // Left boundary
     if (pPosX <= 0+pRadius)
     {
         this->pPosX = pRadius+2;
+        tileLocation = prevTileLocation;
     }
+    // Right boundary
     else if  (pPosX >= 500-pRadius)
     {
         this->pPosX = 500-pRadius-3;
+        tileLocation = prevTileLocation;
     }
 
     if (pPosY <= 0+pRadius)
-    {
-        this->pPosY = pRadius+2;
+   	{
+		this->pPosY = pRadius+2;
+		tileLocation = prevTileLocation;
     }
     else if (pPosY >= SCREEN_HEIGHT-pRadius)
     {
         this->pPosY = SCREEN_HEIGHT-pRadius-3;
+        tileLocation = prevTileLocation;
     }
+    printf("%u\n",tileLocation);
+
 }
 
 
 void Player::render()
 {
     filledCircleRGBA(renderer, pPosX, pPosY, pRadius, red, 0, blue, 255);
+}
+
+void Player::changeTileColor(TileMap& tilemap){
+    for (auto &x : tilemap.TileHolder){
+        if (x.uid == tileLocation){
+            x.marked =! x.marked;
+        }
+        if (x.marked && uid == 0){
+            x.red = 0;
+            x.green = 0;
+        }
+        else if (x.marked && uid == 1){
+            x.blue = 0;
+            x.green = 0;
+        }
+        else {
+            x.green = 255;
+            x.blue = 255;
+            x.red = 255;
+        }
+    }
 }
 
 Player::~Player(){}
@@ -122,7 +193,44 @@ Tile::Tile(int x, int y): uid(newUID++)
 }
 
 void Tile::render(){
+     boxRGBA(renderer, tPosX, tPosY, tPosX+25, tPosY+25, red, green, blue,255);
+}
 
+Tile::~Tile() {}
+
+TileMap::TileMap(){
+    for (int i = 0; i < 20; i++){
+        for (int j = 0; j < 20; j++){
+            TileHolder.push_back(Tile(i*25, j*25));
+        }
+     }
+}
+
+void TileMap::render(){
+    for (auto &x : TileHolder){
+        x.render();
+    }
+}
+
+void TileMap::reset(){
+    for (auto &x : TileHolder){
+        x.green = 255;
+        x.red = 255;
+        x.blue = 255;
+        x.marked = false;
+    }
+}
+
+
+TileMap::~TileMap() {}
+
+void drawGrid(){
+    for(int i = 0; i < 20; i++){
+        lineRGBA(renderer,0+(i+1)*25,0,0+(i+1)*25,500,0,0,0,255);
+    }
+    for(int i = 0; i < 20; i++){
+        lineRGBA(renderer,0,0+(i+1)*25,500,0+(i+1)*25,0,0,0,255);
+    }
 }
 
 // SDL init(), load(), and close() from LazyFoo Productions
@@ -170,18 +278,18 @@ bool init()
 
 SDL_Texture* loadTexture( std::string path )
 {
-	//The final texture
-	SDL_Texture* newTexture = NULL;
+  //The final texture
+  SDL_Texture* newTexture = NULL;
 
-	//Load image at specified path
-	SDL_Surface* loadedSurface = IMG_Load( path.c_str() );
-	if( loadedSurface == NULL )
-	{
-		printf( "Unable to load image %s! SDL_image Error: %s\n", path.c_str(), IMG_GetError() );
-	}
-	else
-	{
-		//Create texture from surface pixels
+  //Load image at specified path
+  SDL_Surface* loadedSurface = IMG_Load( path.c_str() );
+  if( loadedSurface == NULL )
+  {
+    printf( "Unable to load image %s! SDL_image Error: %s\n", path.c_str(), IMG_GetError() );
+  }
+  else
+  {
+    //Create texture from surface pixels
         newTexture = SDL_CreateTextureFromSurface( renderer, loadedSurface );
 
         if( newTexture == NULL )
@@ -189,7 +297,7 @@ SDL_Texture* loadTexture( std::string path )
             printf( "Unable to create texture from %s! SDL Error: %s\n", path.c_str(), SDL_GetError() );
         }
 
-		//Get rid of old loaded surface
+    //Get rid of old loaded surface
         SDL_FreeSurface( loadedSurface );
     }
 
@@ -198,36 +306,36 @@ SDL_Texture* loadTexture( std::string path )
 
 bool loadPatternOne()
 {
-	//Loading success flag
-	bool success = true;
+  //Loading success flag
+  bool success = true;
 
-	//Load texture
-	pattern = loadTexture( "star.png" );
-	if( pattern == NULL )
-	{
-		printf( "Failed to load texture image!\n" );
-		success = false;
-	}
+  //Load texture
+  pattern = loadTexture( "star.png" );
+  if( pattern == NULL )
+  {
+    printf( "Failed to load texture image!\n" );
+    success = false;
+  }
 
-	//Nothing to load
-	return success;
+  //Nothing to load
+  return success;
 }
 
 bool loadPatternTwo()
 {
-	//Loading success flag
-	bool success = true;
+  //Loading success flag
+  bool success = true;
 
-	//Load texture
-	pattern = loadTexture( "mushroom.png" );
-	if( pattern == NULL )
-	{
-		printf( "Failed to load texture image!\n" );
-		success = false;
-	}
+  //Load texture
+  pattern = loadTexture( "mushroom.png" );
+  if( pattern == NULL )
+  {
+    printf( "Failed to load texture image!\n" );
+    success = false;
+  }
 
-	//Nothing to load
-	return success;
+  //Nothing to load
+  return success;
 }
 
 void close()
@@ -246,6 +354,8 @@ int main(int argc, char* args[])
     bool quit = false;
     Player * player1 = new Player(12,12,255,0);
     Player * player2 = new Player(500-13,12,0,255);
+    TileMap map1;
+    TileMap map2;
 
     if(!init())
     {
@@ -300,6 +410,16 @@ int main(int argc, char* args[])
                                 case SDLK_s:
                                     player2->move(2);
                                     break;
+                                case SDLK_TAB:
+                                    player2->changeTileColor(map2);
+                                    break;
+                                case SDLK_SPACE:
+                                    player1->changeTileColor(map1);
+                                    break;
+                                case SDLK_RETURN:
+                                    map1.reset();
+                                    map2.reset();
+                                    break;
                                 default:
                                     break;
                             }
@@ -308,6 +428,7 @@ int main(int argc, char* args[])
                 // Clear Screen
                 SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
                 SDL_RenderClear(renderer);
+
 
                 //Pattern viewport
                 SDL_Rect patternViewport;
@@ -328,7 +449,10 @@ int main(int argc, char* args[])
                 SDL_RenderSetViewport(renderer, &player1Viewport);
 
                 // Render objects
+                map1.render();
+                drawGrid();
                 player1->render();
+
 
                 //Player 2 viewport
                 SDL_Rect player2Viewport;
@@ -338,7 +462,11 @@ int main(int argc, char* args[])
                 player2Viewport.h = 500;
                 SDL_RenderSetViewport(renderer, &player2Viewport);
 
+                map2.render();
+                drawGrid();
+                lineRGBA(renderer,0,0,0,500,255,255,0,255);
                 player2->render();
+                //printf("%u\n", map2.TileHolder.back().uid);
 
                 // Update screen
                 SDL_RenderPresent(renderer);
