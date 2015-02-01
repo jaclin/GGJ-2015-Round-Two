@@ -53,14 +53,25 @@ class Tile
         //colors
         int red = 255;
         int blue = 255;
+        int green = 255;
 
-    Tile(int,int);
-    void render();
-    ~Tile();
+        int tPosX, tPosY;
+
+        Tile(int,int);
+        void render();
+        ~Tile();
 
     private:
         static int newUID;
-        int tPosX, tPosY;
+};
+
+class TileMap
+{
+    public:
+        std::vector<Tile> TileHolder;
+        TileMap();
+        void render();
+        ~TileMap();
 };
 
 int Player::newUID = 0;
@@ -122,7 +133,35 @@ Tile::Tile(int x, int y): uid(newUID++)
 }
 
 void Tile::render(){
+     boxRGBA(renderer, tPosX, tPosY, tPosX+25, tPosY+25, red, green, blue,255);
+}
 
+Tile::~Tile() {}
+
+TileMap::TileMap(){
+    for (int i = 0; i < 21; i++){
+        for (int j = 0; j < 21; j++){
+            TileHolder.push_back(Tile(i*25, j*25));
+        }
+     }
+}
+
+void TileMap::render(){
+    for (auto &x : TileHolder){
+        x.render();
+    }
+}
+
+
+TileMap::~TileMap() {}
+
+void drawGrid(){
+    for(int i = 0; i < 20; i++){
+        lineRGBA(renderer,0+(i+1)*25,0,0+(i+1)*25,500,0,0,0,255);
+    }
+    for(int i = 0; i < 20; i++){
+        lineRGBA(renderer,0,0+(i+1)*25,500,0+(i+1)*25,0,0,0,255);
+    }
 }
 
 // SDL init(), load(), and close() from LazyFoo Productions
@@ -246,6 +285,8 @@ int main(int argc, char* args[])
     bool quit = false;
     Player * player1 = new Player(12,12,255,0);
     Player * player2 = new Player(500-13,12,0,255);
+    TileMap map1;
+    TileMap map2;
 
     if(!init())
     {
@@ -309,6 +350,7 @@ int main(int argc, char* args[])
                 SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
                 SDL_RenderClear(renderer);
 
+
                 //Pattern viewport
                 SDL_Rect patternViewport;
                 patternViewport.x = 1050;
@@ -328,7 +370,10 @@ int main(int argc, char* args[])
                 SDL_RenderSetViewport(renderer, &player1Viewport);
 
                 // Render objects
+                map1.render();
+                drawGrid();
                 player1->render();
+
 
                 //Player 2 viewport
                 SDL_Rect player2Viewport;
@@ -338,7 +383,11 @@ int main(int argc, char* args[])
                 player2Viewport.h = 500;
                 SDL_RenderSetViewport(renderer, &player2Viewport);
 
+                map2.render();
+                drawGrid();
+                lineRGBA(renderer,0,0,0,500,255,255,0,255);
                 player2->render();
+
 
                 // Update screen
                 SDL_RenderPresent(renderer);
