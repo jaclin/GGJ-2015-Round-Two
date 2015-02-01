@@ -15,94 +15,118 @@ SDL_Renderer* renderer = nullptr;
 SDL_Texture* pattern = nullptr;
 
 // Class Declaration
-class Tile
-{
-public:
-  // Unique ID
-  const int uid;
-
-  int red = 255;
-  int blue = 255;
-  int green = 255;
-
-  Tile(int,int);
-  void render();
-  ~Tile();
-
-private:
- static int newUID;
- int tPosX, tPosY;
-
-};
-
-class TileGroup
-{
-};
-
 class Player
 {
-public:
+    public:
+        // Unique ID
+        const int uid;
 
+        Player(int, int, int,int );
+        void render();
+        void move(int);
+        ~Player();
 
-  Player(int, int, int,int );
-  void render();
-  void move(int);
-  void changeColor(Tile&);
-  ~Player();
+    private:
+        // uid hack
+        static int newUID;
 
-private:
-    // colorsssss
-  int velX = 25;
-  int velY = 25;
-  int red, blue;
-      // dimensions
-  double pRadius = 10;
-  double pPosX, pPosY;
-  int targetID;
+        //movement
+        int velX = 25;
+        int velY = 25;
+
+        //colors
+        int red, blue;
+
+        // dimension
+        double pRadius = 10;
+
+        //position
+        double pPosX, pPosY;
 };
 
+class Tile
+{
+    public:
+        // Unique ID
+        const int uid;
 
-Player::Player(int x, int y, int r = 0, int b = 0){
-// Starting position
-  pPosX = x;
-  pPosY = y;
-  red = r;
-  blue = b;
+        //colors
+        int red = 255;
+        int blue = 255;
+
+    Tile(int,int);
+    void render();
+    ~Tile();
+
+    private:
+        static int newUID;
+        int tPosX, tPosY;
+};
+
+int Player::newUID = 0;
+
+Player::Player(int x, int y, int r = 0, int b = 0): uid(newUID++)
+{
+    // Starting position
+    pPosX = x;
+    pPosY = y;
+    red = r;
+    blue = b;
 }
 
 void Player::move(int direction){
 
- if (direction == 0)
-   pPosX += velX;
- if (direction == 1)
-   pPosX -= velX;
- if (direction == 2)
-   pPosY += velY;
- if (direction == 3)
-   pPosY -= velY;
+    if (direction == 0)
+        pPosX += velX;
+    else if (direction == 1)
+        pPosX -= velX;
+    else if (direction == 2)
+        pPosY += velY;
+    else if (direction == 3)
+        pPosY -= velY;
 
- if (pPosX <= 0+pRadius)
- {
-  this->pPosX = pRadius;
-}
-else if  (pPosX >= SCREEN_WIDTH-pRadius)
-{
-  this->pPosX = SCREEN_WIDTH-pRadius;
-}
-else if (pPosY <= 0+pRadius)
-{
-  this->pPosY = pRadius;
-}
-else if (pPosY >= SCREEN_HEIGHT-pRadius)
-{
-  this->pPosY = SCREEN_HEIGHT-pRadius;
-}
+    /*{
+        if (pPosX >= 0+pRadius)
+        {
+            this->pPosX = pRadius;
+        }
+        else if  (pPosX >= 500-pRadius)
+        {
+            this->pPosX = 500-pRadius;
+        }
+        else if (pPosY <= 0+pRadius)
+        {
+            this->pPosY = pRadius;
+        }
+        else if (pPosY >= SCREEN_HEIGHT-pRadius)
+        {
+            this->pPosY = SCREEN_HEIGHT-pRadius;
+        }
+    }
 
+    {
+        if (pPosX <= 500+pRadius)
+        {
+            this->pPosX = 500+pRadius;
+        }
+        else if  (pPosX >= 1000-pRadius)
+        {
+            this->pPosX = 1000-pRadius;
+        }
+        else if (pPosY <= 0+pRadius)
+        {
+            this->pPosY = pRadius;
+        }
+        else if (pPosY >= SCREEN_HEIGHT-pRadius)
+        {
+            this->pPosY = SCREEN_HEIGHT-pRadius;
+        }
+    }*/ 
 }
 
 void Player::render()
 {
-  filledCircleRGBA(renderer, pPosX, pPosY, pRadius, red, 0, blue, 255);
+    filledCircleRGBA(renderer, pPosX, pPosY, pRadius, red, 0, blue, 255);
 }
 
 Player::~Player(){}
@@ -111,75 +135,56 @@ int Tile::newUID = 0;
 
 Tile::Tile(int x, int y): uid(newUID++)
 {
-// Starting position
-  tPosX = x;
-  tPosY = y;
+    // Starting position
+    tPosX = x;
+    tPosY = y;
 }
 
 void Tile::render(){
- rectangleRGBA(renderer, tPosX, tPosY, tPosX+25, tPosY+25, red,green,blue,255);
-}
 
-void Player::changeColor(Tile& tile){
- if (tile.blue == 255 && tile.red == 255){
-  tile.green = 0;
-  if (this->red == 255){
-   tile.blue = 0;
-  }
-  else{
-   tile.red = 0;
-  }
- }
- else if (tile.blue == 255){
-  tile.green = 255;
-  tile.red = 255;
- }
- else{
-  tile.green = 255;
-  tile.blue = 255;
- }
 }
 
 // SDL init(), load(), and close() from LazyFoo Productions
 bool init()
 {
-  bool success = true;
+    bool success = true;
 
-  if(SDL_Init(SDL_INIT_VIDEO) < 0)
-  {
-    printf("SDL could not initialize! SDL Error: %s\n", SDL_GetError());
-    success = false;
-  }
-  else
-  {
-    if(!SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1"))
+    if(SDL_Init(SDL_INIT_VIDEO) < 0)
     {
-      printf("Warning: Linear texture filtering not enabled!");
-    }
-
-    gWindow = SDL_CreateWindow("Pepero", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-
-    if(gWindow == NULL)
-    {
-      printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
-      success = false;
+        printf("SDL could not initialize! SDL Error: %s\n", SDL_GetError());
+        success = false;
     }
     else
     {
-      renderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+        if(!SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "1"))
+        {
+            printf("Warning: Linear texture filtering not enabled!");
+        }
 
-      if(renderer == NULL)
-      {
-        printf("Renderer could not be created! SDL Error: %s\n", SDL_GetError());
-        success = false;
-      }
-      else
-      {
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-      }
+        gWindow = SDL_CreateWindow("Pepero", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+
+        if(gWindow == NULL)
+        {
+            printf("Window could not be created! SDL Error: %s\n", SDL_GetError());
+            success = false;
+        }
+        else
+        {
+            renderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+
+            if(renderer == NULL)
+            {
+                printf("Renderer could not be created! SDL Error: %s\n", SDL_GetError());
+                success = false;
+            }
+            else
+            {
+                SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+            }
+        }
     }
-  }
-  return success;
+
+    return success;
 }
 
 SDL_Texture* loadTexture( std::string path )
@@ -196,17 +201,18 @@ SDL_Texture* loadTexture( std::string path )
   else
   {
     //Create texture from surface pixels
-    newTexture = SDL_CreateTextureFromSurface( renderer, loadedSurface );
-    if( newTexture == NULL )
-    {
-      printf( "Unable to create texture from %s! SDL Error: %s\n", path.c_str(), SDL_GetError() );
-    }
+        newTexture = SDL_CreateTextureFromSurface( renderer, loadedSurface );
+
+        if( newTexture == NULL )
+        {
+            printf( "Unable to create texture from %s! SDL Error: %s\n", path.c_str(), SDL_GetError() );
+        }
 
     //Get rid of old loaded surface
-    SDL_FreeSurface( loadedSurface );
-  }
+        SDL_FreeSurface( loadedSurface );
+    }
 
-  return newTexture;
+    return newTexture;
 }
 
 bool loadPatternOne()
@@ -215,7 +221,7 @@ bool loadPatternOne()
   bool success = true;
 
   //Load texture
-  pattern = loadTexture( "viewport.png" );
+  pattern = loadTexture( "star.png" );
   if( pattern == NULL )
   {
     printf( "Failed to load texture image!\n" );
@@ -232,7 +238,7 @@ bool loadPatternTwo()
   bool success = true;
 
   //Load texture
-  pattern = loadTexture( "water_PNG3319.png" );
+  pattern = loadTexture( "mushroom.png" );
   if( pattern == NULL )
   {
     printf( "Failed to load texture image!\n" );
@@ -245,111 +251,111 @@ bool loadPatternTwo()
 
 void close()
 {
-  SDL_DestroyTexture(pattern);
-  SDL_DestroyRenderer(renderer);
-  SDL_DestroyWindow(gWindow);
-  gWindow = NULL;
-  renderer = NULL;
+    SDL_DestroyTexture(pattern);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(gWindow);
+    gWindow = NULL;
+    renderer = NULL;
 
-  SDL_Quit();
+    SDL_Quit();
 }
 
 int main(int argc, char* args[])
 {
-  bool quit = false;
-  Player * player1 = new Player(12,12,255,0);
-  Player * player2 = new Player(SCREEN_WIDTH-12,SCREEN_HEIGHT-12,0,255);
-  Tile * test = new Tile(0,0);
+    bool quit = false;
+    Player * player1 = new Player(12,12,255,0);
+    Player * player2 = new Player(1000-12,SCREEN_HEIGHT-12,0,255);
 
-  if(!init())
-  {
-    printf("Failed to initialize!\n");
-  }
-  else
-  {
-    if( !loadPatternOne() )
+    if(!init())
     {
-      printf( "Failed to load media!\n" );
+        printf("Failed to initialize!\n");
     }
     else
     {
-     SDL_Event e;
-     while(!quit)
-     {
-      uint capTimer = SDL_GetTicks();
-      while(SDL_PollEvent(&e) != 0)
-      {
-        switch( e.type ){
-            /* Look for a keypress */
-          case SDL_KEYDOWN:
-                /* Check the SDLKey values and move change the coords */
-          switch( e.key.keysym.sym ){
-            case SDLK_LEFT:
-            player1->move(1);
-            break;
-            case SDLK_RIGHT:
-            player1->move(0);
-            break;
-            case SDLK_UP:
-            player1->move(3);
-            break;
-            case SDLK_DOWN:
-            player1->move(2);
-            break;
-            case SDLK_a:
-            player2->move(1);
-            break;
-            case SDLK_d:
-            player2->move(0);
-            break;
-            case SDLK_w:
-            player2->move(3);
-            break;
-            case SDLK_s:
-            player2->move(2);
-            break;
-            case SDLK_TAB:
-            break;
-            case SDLK_SPACE:
-            break;
-            default:
-            break;
-          }
+        if( !loadPatternOne() )
+        {
+            printf( "Failed to load media!\n" );
         }
-      }
-      // Clear Screen
-      SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-      SDL_RenderClear(renderer);
+        else
+        {
+            SDL_Event e;
 
-        //Pattern viewport
-      SDL_Rect patternViewport;
-      patternViewport.x = 1000;
-      patternViewport.y = 0;
-      patternViewport.w = 300;
-      patternViewport.h = 300;
-      SDL_RenderSetViewport(renderer, &patternViewport);
+            while(!quit)
+            {
+                uint capTimer = SDL_GetTicks();
 
-      SDL_RenderCopy( renderer, pattern, NULL, NULL );
+                while(SDL_PollEvent(&e) != 0)
+                {
+                    switch( e.type )
+                    {
+                        case SDL_QUIT:
+                            quit = true;
+                        /* Look for a keypress */
+                        case SDL_KEYDOWN:
+                            /* Check the SDLKey values and move change the coords */
+                            switch( e.key.keysym.sym )
+                            {
+                                case SDLK_LEFT:
+                                    player1->move(1);
+                                    break;
+                                case SDLK_RIGHT:
+                                    player1->move(0);
+                                    break;
+                                case SDLK_UP:
+                                    player1->move(3);
+                                    break;
+                                case SDLK_DOWN:
+                                    player1->move(2);
+                                    break;
+                                case SDLK_a:
+                                    player2->move(1);
+                                    break;
+                                case SDLK_d:
+                                    player2->move(0);
+                                    break;
+                                case SDLK_w:
+                                    player2->move(3);
+                                    break;
+                                case SDLK_s:
+                                    player2->move(2);
+                                    break;
+                                default:
+                                    break;
+                            }
+                    }
+                }
+                // Clear Screen
+                SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+                SDL_RenderClear(renderer);
 
-        //Game viewport
-      SDL_Rect mainViewport;
-      mainViewport.x = 0;
-      mainViewport.y = 0;
-      mainViewport.w = 1000;
-      mainViewport.h = 500;
-      SDL_RenderSetViewport(renderer, &mainViewport);
+                //Pattern viewport
+                SDL_Rect patternViewport;
+                patternViewport.x = 1050;
+                patternViewport.y = 150;
+                patternViewport.w = 200;
+                patternViewport.h = 200;
+                SDL_RenderSetViewport(renderer, &patternViewport);
 
-        // Render Objects
-      player1->render();
-      player2->render();
-      test->render();
+                SDL_RenderCopy( renderer, pattern, NULL, NULL );
 
-        // Render other objects
-      SDL_RenderPresent(renderer);
+                //Game viewport
+                SDL_Rect mainViewport;
+                mainViewport.x = 0;
+                mainViewport.y = 0;
+                mainViewport.w = 1000;
+                mainViewport.h = 500;
+                SDL_RenderSetViewport(renderer, &mainViewport);
+
+                // Render objects
+                player1->render();
+                player2->render();
+
+                // Update screen
+                SDL_RenderPresent(renderer);
+            }
+        }
     }
-  }
-}
 
-close();
-return 0;
+    close();
+    return 0;
 }
