@@ -74,8 +74,8 @@ Player::Player(int x, int y, int r = 0, int b = 0): uid(newUID++)
     blue = b;
 }
 
-void Player::move(int direction){
-
+void Player::move(int direction)
+{
     if (direction == 0)
         pPosX += velX;
     else if (direction == 1)
@@ -85,44 +85,25 @@ void Player::move(int direction){
     else if (direction == 3)
         pPosY -= velY;
 
-    /*{
-        if (pPosX >= 0+pRadius)
-        {
-            this->pPosX = pRadius;
-        }
-        else if  (pPosX >= 500-pRadius)
-        {
-            this->pPosX = 500-pRadius;
-        }
-        else if (pPosY <= 0+pRadius)
-        {
-            this->pPosY = pRadius;
-        }
-        else if (pPosY >= SCREEN_HEIGHT-pRadius)
-        {
-            this->pPosY = SCREEN_HEIGHT-pRadius;
-        }
+    if (pPosX <= 0+pRadius)
+    {
+        this->pPosX = pRadius+2;
+    }
+    else if  (pPosX >= 500-pRadius)
+    {
+        this->pPosX = 500-pRadius-3;
     }
 
+    if (pPosY <= 0+pRadius)
     {
-        if (pPosX <= 500+pRadius)
-        {
-            this->pPosX = 500+pRadius;
-        }
-        else if  (pPosX >= 1000-pRadius)
-        {
-            this->pPosX = 1000-pRadius;
-        }
-        else if (pPosY <= 0+pRadius)
-        {
-            this->pPosY = pRadius;
-        }
-        else if (pPosY >= SCREEN_HEIGHT-pRadius)
-        {
-            this->pPosY = SCREEN_HEIGHT-pRadius;
-        }
-    }*/
+        this->pPosY = pRadius+2;
+    }
+    else if (pPosY >= SCREEN_HEIGHT-pRadius)
+    {
+        this->pPosY = SCREEN_HEIGHT-pRadius-3;
+    }
 }
+
 
 void Player::render()
 {
@@ -264,7 +245,7 @@ int main(int argc, char* args[])
 {
     bool quit = false;
     Player * player1 = new Player(12,12,255,0);
-    Player * player2 = new Player(500-12,12,0,255);
+    Player * player2 = new Player(500-13,12,0,255);
 
     if(!init())
     {
