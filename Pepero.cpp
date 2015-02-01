@@ -26,6 +26,7 @@ class Tile
         int red = 255;
         int blue = 255;
         int green = 255;
+        bool marked = false;
 
         int tPosX, tPosY;
 
@@ -161,7 +162,20 @@ void Player::render()
 void Player::changeTileColor(TileMap& tilemap){
     for (auto &x : tilemap.TileHolder){
         if (x.uid == tileLocation){
+            x.marked =! x.marked;
+        }
+        if (x.marked && uid == 0){
             x.red = 0;
+            x.green = 0;
+        }
+        else if (x.marked && uid == 1){
+            x.blue = 0;
+            x.green = 0;
+        }
+        else {
+            x.green = 255;
+            x.blue = 255;
+            x.red = 255;
         }
     }
 }
