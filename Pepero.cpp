@@ -45,6 +45,7 @@ class TileMap
         TileMap();
         void render();
         void reset();
+        bool check(std::vector<int>& );
         ~TileMap();
 };
 
@@ -221,6 +222,24 @@ void TileMap::reset(){
     }
 }
 
+bool TileMap::check(std::vector<int>& target){
+    bool allMarked = false;
+    for (auto &x : TileHolder){
+        for (auto &y : target){
+            if (x.uid == y){
+                if (x.marked == true){
+                    allMarked = true;
+                }
+                else{
+                    allMarked = false;
+                }
+            }
+        }
+    }
+    reset();
+    return allMarked;
+}
+
 
 TileMap::~TileMap() {}
 
@@ -356,6 +375,11 @@ int main(int argc, char* args[])
     Player * player2 = new Player(500-13,12,0,255);
     TileMap map1;
     TileMap map2;
+    std::vector<int> map1Key {46, 47, 56, 57, 66, 68, 74, 75, 77,86, 89, 92, 93, 97, 106, 110, 111, 116,126, 136,145, 146, 155,163, 164, 168, 169, 170, 175,182, 194};
+    std::vector<int> map2Key {602, 614, 623, 624, 628, 629, 630, 635, 645, 646, 655, 666, 676, 686, 690, 691, 696, 706, 709, 712, 713, 717,	726, 728, 734, 735, 737, 746, 747, 756, 757};
+    // CHECKER
+    //std::vector<int> map1Key {0};
+    //std::vector<int> map2Key {400};
 
     if(!init())
     {
@@ -363,18 +387,29 @@ int main(int argc, char* args[])
     }
     else
     {
-        if( !loadPatternOne() )
+        if( !loadPatternOne() && !loadPatternTwo() )
         {
             printf( "Failed to load media!\n" );
         }
         else
         {
             SDL_Event e;
+            bool status = false;
 
             while(!quit)
             {
-                uint capTimer = SDL_GetTicks();
+                if (status){
+                    pattern = loadTexture( "mushroom.png" );
+                     map1Key = {47, 49, 51,66, 68, 72,87, 93, 95,	112, 116,123, 127, 131, 137,142, 146, 148, 150, 152,165, 171, 173, 177,	182, 184, 192,203, 205, 211, 217,222, 224, 232, 234,243, 245, 251, 257,266, 270, 272,283, 287, 289, 291, 293,304, 308, 312, 314,325, 327, 333,348, 350, 352};
+                    map2Key = {448, 450, 452,465, 467, 471, 473,484, 492, 494,503, 507, 513,528, 532,547, 549, 551, 557,562, 566, 570, 572, 574,583, 585, 591,597,602, 604, 612,623, 625, 631, 633, 637,
+		642, 644, 652
+		,663, 665, 671, 677
+		,686, 690, 692, 696
+		,707, 709, 713, 715
+		,726, 728
+		,747, 749, 751};
 
+                }
                 while(SDL_PollEvent(&e) != 0)
                 {
                     switch( e.type )
@@ -417,8 +452,7 @@ int main(int argc, char* args[])
                                     player1->changeTileColor(map1);
                                     break;
                                 case SDLK_RETURN:
-                                    map1.reset();
-                                    map2.reset();
+                                    status = map1.check(map1Key) & map2.check(map2Key);
                                     break;
                                 default:
                                     break;
@@ -428,7 +462,6 @@ int main(int argc, char* args[])
                 // Clear Screen
                 SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
                 SDL_RenderClear(renderer);
-
 
                 //Pattern viewport
                 SDL_Rect patternViewport;
@@ -453,7 +486,6 @@ int main(int argc, char* args[])
                 drawGrid();
                 player1->render();
 
-
                 //Player 2 viewport
                 SDL_Rect player2Viewport;
                 player2Viewport.x = 500;
@@ -466,7 +498,6 @@ int main(int argc, char* args[])
                 drawGrid();
                 lineRGBA(renderer,0,0,0,500,255,255,0,255);
                 player2->render();
-                //printf("%u\n", map2.TileHolder.back().uid);
 
                 // Update screen
                 SDL_RenderPresent(renderer);
